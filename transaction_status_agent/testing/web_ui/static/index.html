@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Transaction Status Agent Playground</title>
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <h1>💬 Transaction Status Agent</h1>
+
+  <!-- Main Layout -->
+  <div id="main-container">
+    
+    <!-- 🧠 Left Panel: Agent Controls -->
+    <section id="control-panel">
+      <h2>🧠 Agent Instruction</h2>
+      <textarea id="prompt-editor">{{PROMPT}}</textarea><br>
+      <button id="save-prompt">💾 Update Prompt</button>
+      <button id="refresh-session">🔄 Refresh Session</button>
+      <hr>
+      <form id="chat-form">
+        <textarea id="query" placeholder="Type your message..."></textarea><br>
+        <button type="submit">Send</button>
+      </form>
+    </section>
+
+    <!-- 💬 Right Panel: Conversation -->
+    <section id="chat-panel">
+      <h2>💬 Conversation</h2>
+      <div id="response" class="reply"></div>
+    </section>
+  </div>
+
+  <!-- JS Logic -->
+  <script>
+    const promptEditor = document.getElementById("prompt-editor");
+    const savePrompt = document.getElementById("save-prompt");
+    const form = document.getElementById("chat-form");
+    const responseDiv = document.getElementById("response");
+  
+    savePrompt.onclick = async () => {
+      const newPrompt = promptEditor.value;
+      const res = await fetch("/update_prompt", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ prompt: newPrompt }),
+      });
+      const data = await res.json();
+      alert(data.message);
+    };
+  
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const query = document.getElementById("query").value.trim();
+      if (!query) return;
+  
+      responseDiv.innerHTML += `<p><b>You:</b> ${query}</p>`;
+      document.getElementById("query").value = "";
+      responseDiv.innerHTML += `<p id="thinking">⏳ Thinking...</p>`;
+  
+      try {
+        const res = await fetch("/run", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query }),
+        });
+  
+        const text = await res.text();
+        let data;
+        try {
+          data = JSON.parse(text);
+        } catch (e) {
+          console.error("Response not valid JSON:", text);
+          responseDiv.innerHTML += `<p style="color:red;">⚠️ Error parsing response: ${e}</p>`;
+          return;
+        }
+  
+        const thinking = document.getElementById("thinking");
+        if (thinking) thinking.remove();
+  
+        const reply = data.response || "(no reply)";
+        responseDiv.innerHTML += `<p><b>Agent:</b> ${reply}</p>`;
+        responseDiv.scrollTop = responseDiv.scrollHeight;
+      } catch (err) {
+        const thinking = document.getElementById("thinking");
+        if (thinking) thinking.remove();
+        responseDiv.innerHTML += `<p style="color:red;">⚠️ Network error: ${err}</p>`;
+      }
+    };
+
+    const refreshButton = document.getElementById("refresh-session");
+    refreshButton.onclick = async () => {
+      if (!confirm("Are you sure you want to clear the conversation?")) return;
+      try {
+        await fetch("/reset_session", { method: "POST" });
+        responseDiv.innerHTML = "";
+      } catch (err) {
+        console.error("⚠️ Failed to reset session:", err);
+      }
+    };
+  </script>
+</body>
+</html>

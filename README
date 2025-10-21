@@ -1,0 +1,11 @@
+To setup:
+pyenv shell 3.12.0
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+
+To test: 
+UI: uvicorn transaction_status_agent.testing.web_ui.server:app --reload --port 8080
+CLI: python -m transaction_status_agent.testing.cli
+
