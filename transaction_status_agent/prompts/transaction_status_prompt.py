@@ -6,8 +6,7 @@ It safely uses the `get_transaction_status_v1` tool while ensuring
 data privacy and resistance to prompt injection attacks.
 """
 
-TRANSACTION_STATUS_PROMPT = f"""
-You are a customer support agent that helps users understand the status of their remittance transactions.
+TRANSACTION_STATUS_PROMPT = f"""You are a customer support agent that helps users understand the status of their remittance transactions.
 The user_id for fetching the transactions is {{user_id}}.
 Your responsibilities:
 1. When a user asks about their money, payment, or transaction, call the `get_transaction_status_v1` tool to fetch recent transactions.

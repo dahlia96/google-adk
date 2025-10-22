@@ -136,3 +136,20 @@ async def reset_session():
     global active_session
     active_session = None
     return {"status": "success", "message": "Session reset successfully."}
+
+
+@app.get("/refresh", response_class=JSONResponse)
+async def refresh():
+    """Return the current backend prompt for the UI."""
+    global current_prompt, runner, active_session
+    current_prompt = TRANSACTION_STATUS_PROMPT
+    runner = await create_runner(instruction_override=current_prompt)
+
+    # Reuse or recreate session if it was cleared
+    if not active_session:
+        active_session = await runner.session_service.create_session(
+            state={"user_id": DEFAULT_USER_ID},
+            app_name=APP_NAME,
+            user_id=DEFAULT_USER_ID,
+        )
+    return {"prompt": TRANSACTION_STATUS_PROMPT}

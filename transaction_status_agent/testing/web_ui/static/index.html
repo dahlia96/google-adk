@@ -16,7 +16,7 @@
       <h2>🧠 Agent Instruction</h2>
       <textarea id="prompt-editor">{{PROMPT}}</textarea><br>
       <button id="save-prompt">💾 Update Prompt</button>
-      <button id="refresh-session">🔄 Refresh Session</button>
+      <button id="refresh-session">🔄 Reset Conversation</button>
       <hr>
       <form id="chat-form">
         <textarea id="query" placeholder="Type your message..."></textarea><br>
@@ -98,6 +98,14 @@
         console.error("⚠️ Failed to reset session:", err);
       }
     };
+    async function loadPrompt() {
+      await fetch("/reset_session", { method: "POST" });
+      const res = await fetch("/refresh");
+      const data = await res.json();
+      document.getElementById("prompt-editor").value = data.prompt;
+    }
+    
+    window.addEventListener("DOMContentLoaded", loadPrompt);    
   </script>
 </body>
 </html>
